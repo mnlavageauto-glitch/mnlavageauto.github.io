@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#185FA5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MN Lavage Auto">
+<link rel="manifest" href="manifest.json">
+<title>MN LAVAGE AUTO — Facturation</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F0F4F8;color:#1a1a2e;min-height:100vh}
+:root{--blue:#185FA5;--blue-dark:#0C447C;--blue-light:#E6F1FB;--orange:#F7931E;--green:#27500A;--green-bg:#EAF3DE;--border:#dde3ed;--radius:10px;--shadow:0 1px 4px rgba(0,0,0,0.08)}
+
+/* NAV */
+.nav{background:var(--blue);display:flex;gap:0;border-bottom:3px solid var(--blue-dark)}
+.nav-btn{flex:1;padding:12px 6px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.65);background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s;letter-spacing:.03em}
+.nav-btn .ico{font-size:20px}
+.nav-btn.active{color:white;background:rgba(255,255,255,0.12);border-bottom:3px solid var(--orange);margin-bottom:-3px}
+.nav-btn:hover{color:white;background:rgba(255,255,255,0.08)}
+
+/* SCREENS */
+.screen{display:none;padding:12px;max-width:900px;margin:0 auto;animation:fadeIn .2s}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* LOGO HEADER */
+.logo-header{background:var(--blue);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.logo-header img{height:56px}
+.facture-badge{text-align:right}
+.facture-badge .label{font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.1em}
+.facture-badge .num{font-size:22px;font-weight:700;color:white}
+
+/* CARDS */
+.card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.card-title .ico{font-size:16px}
+
+/* FORM */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select,.field textarea{border:1px solid var(--border);border-radius:6px;padding:9px 10px;font-size:14px;background:white;color:#1a1a2e;width:100%;font-family:inherit;transition:border .15s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.12)}
+.field textarea{resize:vertical;min-height:60px}
+
+/* TYPE BUTTONS */
+.type-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tbtn{background:#f5f7fa;border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;color:#555;transition:all .15s}
+.tbtn.active,.tbtn:hover{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* PRESTATIONS */
+.presets{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.preset{background:var(--blue-light);border:1px solid #B5D4F4;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--blue);font-weight:600;transition:all .15s}
+.preset:hover{background:var(--blue);color:white}
+
+table.prestations{width:100%;border-collapse:collapse;font-size:13px}
+table.prestations th{text-align:left;padding:6px 8px;color:#888;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border)}
+table.prestations td{padding:5px 4px;border-bottom:1px solid #f0f0f0}
+table.prestations td input,table.prestations td select{width:100%;border:none;background:transparent;font-size:13px;color:#1a1a2e;font-family:inherit;padding:2px 4px;border-radius:4px}
+table.prestations td input:focus{outline:1px solid var(--blue);background:var(--blue-light)}
+.total-col{text-align:right;font-weight:700;color:var(--blue);min-width:75px}
+.btn-del{background:none;border:none;cursor:pointer;color:#ccc;font-size:18px;line-height:1;padding:0 4px;transition:color .15s}
+.btn-del:hover{color:#e74c3c}
+
+/* TOTAUX */
+.totaux-box{margin-left:auto;width:260px;margin-top:12px;background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.totaux-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;border-bottom:1px solid #eee}
+.totaux-row:last-child{border:none}
+.totaux-row.total{font-weight:700;font-size:17px;color:var(--blue);padding-top:8px}
+.totaux-row select{border:1px solid var(--border);border-radius:4px;font-size:12px;padding:2px 6px;background:white}
+
+/* BUTTONS */
+.btn-add{background:var(--blue-light);color:var(--blue);border:1px solid #B5D4F4;border-radius:6px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;margin-top:8px;font-family:inherit}
+.btn-add:hover{background:var(--blue);color:white}
+.actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn-primary{background:var(--blue);color:white;border:none;border-radius:var(--radius);padding:12px 22px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit;flex:1;justify-content:center}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-primary.orange{background:var(--orange)}
+.btn-primary.orange:hover{background:#cc7300}
+.btn-secondary{background:white;color:#555;border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit;justify-content:center}
+.btn-secondary:hover{background:#f5f7fa}
+
+/* ALERT */
+.alert{border-radius:var(--radius);padding:12px 14px;font-size:13px;font-weight:600;display:none;align-items:center;gap:8px;margin-bottom:12px}
+.alert.success{background:var(--green-bg);color:var(--green);border:1px solid #C0DD97}
+.alert.info{background:var(--blue-light);color:var(--blue);border:1px solid #B5D4F4}
+
+/* COMPTABILITE */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.stat-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center}
+.stat-card .stat-val{font-size:22px;font-weight:700;color:var(--blue);margin-bottom:2px}
+.stat-card .stat-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em}
+.stat-card.orange .stat-val{color:var(--orange)}
+.stat-card.green .stat-val{color:#27500A}
+
+table.compta{width:100%;border-collapse:collapse;font-size:13px}
+table.compta th{background:var(--blue);color:white;padding:8px 10px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+table.compta th:last-child{text-align:right}
+table.compta td{padding:8px 10px;border-bottom:1px solid #f0f0f0;font-size:13px}
+table.compta td:last-child{text-align:right;font-weight:600;color:var(--blue)}
+table.compta tr:hover td{background:#f8fafc}
+table.compta tr.total-row td{font-weight:700;background:#f0f4f8;color:var(--blue-dark)}
+
+.filter-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.filter-bar select,.filter-bar input{border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;background:white;font-family:inherit}
+.month-nav{display:flex;align-items:center;gap:10px;background:white;border:1px solid var(--border);border-radius:6px;padding:4px}
+.month-nav button{background:none;border:none;cursor:pointer;font-size:18px;color:var(--blue);padding:2px 8px;border-radius:4px}
+.month-nav button:hover{background:var(--blue-light)}
+.month-nav span{font-size:13px;font-weight:700;min-width:110px;text-align:center;color:var(--blue)}
+
+/* INSTALL SCREEN */
+.install-step{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start}
+.step-num{background:var(--blue);color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0}
+.step-content h4{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--blue)}
+.step-content p{font-size:13px;color:#555;line-height:1.5}
+.step-content .note{font-size:12px;background:#FFF8E7;border:1px solid #FBBF24;border-radius:6px;padding:6px 10px;margin-top:6px;color:#92400E}
+.os-tabs{display:flex;gap:6px;margin-bottom:12px}
+.os-tab{padding:8px 18px;border:1px solid var(--border);border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:#555}
+.os-tab.active{background:var(--blue);color:white;border-color:var(--blue)}
+
+@media(max-width:600px){
+  .grid3{grid-template-columns:1fr 1fr}
+  .actions{flex-direction:column}
+  .btn-primary,.btn-secondary{width:100%}
+  .totaux-box{width:100%}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showScreen('facturation',this)">
+    <span class="ico">🧾</span>FACTURER
+  </button>
+  <button class="nav-btn" onclick="showScreen('comptabilite',this)">
+    <span class="ico">📊</span>COMPTA
+  </button>
+  <button class="nav-btn" onclick="showScreen('installer',this)">
+    <span class="ico">📱</span>INSTALLER
+  </button>
+</nav>
+
+<!-- ═══════════════════ FACTURATION ═══════════════════ -->
+<div id="screen-facturation" class="screen active">
+
+  <div class="alert success" id="alert-ok"><span>✅</span><span id="alert-msg">OK</span></div>
+
+  <!-- LOGO + NUM -->
+  <div class="logo-header">
+    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgOTAiIHdpZHRoPSIzMjAiIGhlaWdodD0iOTAiPgogIDxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iOTAiIHJ4PSIxMiIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuMTUiLz4KICA8ZWxsaXBzZSBjeD0iMzgiIGN5PSIyMCIgcng9IjUiIHJ5PSI4IiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC45Ii8+CiAgPGVsbGlwc2UgY3g9IjU0IiBjeT0iMTUiIHJ4PSI1IiByeT0iOCIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuOSIvPgogIDxlbGxpcHNlIGN4PSI3MCIgY3k9IjIwIiByeD0iNSIgcnk9IjgiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz4KICA8cmVjdCB4PSIyMCIgeT0iNTAiIHdpZHRoPSI2OCIgaGVpZ2h0PSIyMCIgcng9IjQiIGZpbGw9IiNGNzkzMUUiLz4KICA8cmVjdCB4PSIyOCIgeT0iMzgiIHdpZHRoPSI1MiIgaGVpZ2h0PSIxOCIgcng9IjYiIGZpbGw9IiNGNzkzMUUiLz4KICA8cmVjdCB4PSIzMSIgeT0iNDEiIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMiIgcng9IjMiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC40KSIvPgogIDxyZWN0IHg9IjU1IiB5PSI0MSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjEyIiByeD0iMyIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjQpIi8+CiAgPGNpcmNsZSBjeD0iMzMiIGN5PSI3MiIgcj0iOSIgZmlsbD0iIzBDNDQ3QyIvPgogIDxjaXJjbGUgY3g9IjMzIiBjeT0iNzIiIHI9IjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjMiLz4KICA8Y2lyY2xlIGN4PSI3NSIgY3k9IjcyIiByPSI5IiBmaWxsPSIjMEM0NDdDIi8+CiAgPGNpcmNsZSBjeD0iNzUiIGN5PSI3MiIgcj0iNSIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuMyIvPgogIDx0ZXh0IHg9IjEwMiIgeT0iMzciIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjaywgQXJpYWwiIGZvbnQtd2VpZ2h0PSI5MDAiIGZvbnQtc2l6ZT0iMjYiIGZpbGw9IndoaXRlIiBsZXR0ZXItc3BhY2luZz0iMSI+TU4gTEFWQUdFPC90ZXh0PgogIDx0ZXh0IHg9IjEwMiIgeT0iNjQiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjaywgQXJpYWwiIGZvbnQtd2VpZ2h0PSI5MDAiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiNGNzkzMUUiIGxldHRlci1zcGFjaW5nPSIzIj5BVVRPPC90ZXh0PgogIDx0ZXh0IHg9IjEwMiIgeT0iODEiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjYpIj5WaWxsaWVycy1sZS1CZWwg4oCiIExhdmFnZSBtYW51ZWw8L3RleHQ+Cjwvc3ZnPg==" alt="Logo MN LAVAGE AUTO">
+    <div class="facture-badge">
+      <div class="label">Facture n°</div>
+      <div class="num" id="num-display">2026-001</div>
+    </div>
+  </div>
+
+  <!-- FACTURE INFO -->
+  <div class="card">
+    <div class="card-title"><span class="ico">📋</span> Informations facture</div>
+    <div class="grid3">
+      <div class="field"><label>Numéro</label><input type="text" id="f-num" value="2026-001" oninput="document.getElementById('num-display').textContent=this.value"></div>
+      <div class="field"><label>Date</label><input type="date" id="f-date"></div>
+      <div class="field"><label>Heure</label><input type="time" id="f-heure"></div>
+    </div>
+  </div>
+
+  <!-- CLIENT -->
+  <div class="card">
+    <div class="card-title"><span class="ico">👤</span> Client</div>
+    <div class="grid2">
+      <div class="field"><label>Nom / Société</label><input type="text" id="c-nom" placeholder="M. Dupont..."></div>
+      <div class="field"><label>Téléphone</label><input type="text" id="c-tel" placeholder="06 XX XX XX XX"></div>
+    </div>
+  </div>
+
+  <!-- VÉHICULE -->
+  <div class="card">
+    <div class="card-title"><span class="ico">🚗</span> Véhicule</div>
+    <div class="type-btns" id="type-btns">
+      <button class="tbtn active" onclick="setType(this,'Citadine')">Citadine</button>
+      <button class="tbtn" onclick="setType(this,'Berline')">Berline</button>
+      <button class="tbtn" onclick="setType(this,'SUV / 4x4')">SUV / 4x4</button>
+      <button class="tbtn" onclick="setType(this,'Monospace / Van')">Monospace</button>
+      <button class="tbtn" onclick="setType(this,'Utilitaire')">Utilitaire</button>
+      <button class="tbtn" onclick="setType(this,'Moto / Scooter')">Moto</button>
+      <button class="tbtn" onclick="setType(this,'Camping-car')">Camping-car</button>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Type</label><input type="text" id="v-type" value="Citadine"></div>
+      <div class="field"><label>Immatriculation</label><input type="text" id="v-immat" placeholder="AA-123-BB" style="text-transform:uppercase"></div>
+      <div class="field"><label>Marque / Modèle</label><input type="text" id="v-modele" placeholder="Renault Clio"></div>
+    </div>
+  </div>
+
+  <!-- PRESTATIONS -->
+  <div class="card">
+    <div class="card-title"><span class="ico">🧹</span> Prestations</div>
+    <div class="presets">
+      <span style="font-size:11px;color:#888;align-self:center;font-weight:700;text-transform:uppercase">Ajout rapide :</span>
+      <button class="preset" onclick="addPreset('Lavage extérieur complet',25)">Ext. 25€</button>
+      <button class="preset" onclick="addPreset('Lavage intérieur complet',30)">Int. 30€</button>
+      <button class="preset" onclick="addPreset('Lavage intérieur + extérieur',50)">Int.+Ext. 50€</button>
+      <button class="preset" onclick="addPreset('Nettoyage sellerie / tapis',20)">Sellerie 20€</button>
+      <button class="preset" onclick="addPreset('Détartrage jantes',15)">Jantes 15€</button>
+      <button class="preset" onclick="addPreset('Traitement vitres anti-pluie',20)">Anti-pluie 20€</button>
+      <button class="preset" onclick="addPreset('Aspiration + désinfection habitacle',25)">Aspiration 25€</button>
+      <button class="preset" onclick="addPreset('Lustrage carrosserie',40)">Lustrage 40€</button>
+      <button class="preset" onclick="addPreset('Décontamination peinture',35)">Décontam. 35€</button>
+      <button class="preset" onclick="addPreset('Shampoing moquette',20)">Shampoing 20€</button>
+    </div>
+    <table class="prestations">
+      <thead><tr>
+        <th style="width:46%">Désignation</th>
+        <th style="width:10%">Qté</th>
+        <th style="width:16%">PU (€)</th>
+        <th style="width:16%;text-align:right">Total HT</th>
+        <th style="width:8%"></th>
+      </tr></thead>
+      <tbody id="lignes">
+        <tr id="ligne-1">
+          <td><input type="text" placeholder="Prestation..." oninput="calcTotaux()"></td>
+          <td><input type="number" value="1" min="1" style="width:44px" oninput="calcTotaux()"></td>
+          <td><input type="number" value="0" min="0" step="0.5" style="width:60px" oninput="calcTotaux()"></td>
+          <td class="total-col" id="t-1">0,00 €</td>
+          <td><button class="btn-del" onclick="delLigne('ligne-1')">×</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="btn-add" onclick="addLigne()">＋ Ajouter une ligne</button>
+
+    <div class="totaux-box">
+      <div class="totaux-row"><span>Sous-total HT</span><span id="sous-total">0,00 €</span></div>
+      <div class="totaux-row">
+        <span>TVA <select id="tva-mode" onchange="calcTotaux()">
+          <option value="0">0% (Franchise)</option>
+          <option value="20">20%</option>
+          <option value="10">10%</option>
+        </select></span>
+        <span id="montant-tva">0,00 €</span>
+      </div>
+      <div class="totaux-row total"><span>TOTAL TTC</span><span id="total-ttc">0,00 €</span></div>
+      <div class="totaux-row" style="font-size:12px;color:#888">
+        <span>Règlement</span>
+        <select id="reglement">
+          <option>Espèces</option><option>CB</option><option>Virement</option><option>Chèque</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- REMARQUES -->
+  <div class="card">
+    <div class="card-title"><span class="ico">📝</span> Remarques</div>
+    <div class="field"><textarea id="remarques" placeholder="État du véhicule, observations..."></textarea></div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn-secondary" onclick="resetForm()">🔄 Nouvelle facture</button>
+    <button class="btn-primary orange" onclick="saveAndPrint()">🖨️ Enregistrer & Imprimer</button>
+  </div>
+
+</div>
+
+<!-- ═══════════════════ COMPTABILITÉ ═══════════════════ -->
+<div id="screen-comptabilite" class="screen">
+
+  <div class="alert info" id="alert-compta"><span>ℹ️</span><span id="alert-compta-msg">OK</span></div>
+
+  <div class="card">
+    <div class="card-title"><span class="ico">📅</span> Période</div>
+    <div class="filter-bar">
+      <div class="month-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <span id="month-label">Mai 2026</span>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <select id="filter-reglement" onchange="renderCompta()">
+        <option value="">Tous règlements</option>
+        <option value="Espèces">Espèces</option>
+        <option value="CB">CB</option>
+        <option value="Virement">Virement</option>
+        <option value="Chèque">Chèque</option>
+      </select>
+      <button class="btn-primary" onclick="exportCSV()" style="padding:8px 14px;font-size:12px;flex:none">⬇️ Export CSV</button>
+      <button class="btn-primary" onclick="printReport()" style="padding:8px 14px;font-size:12px;flex:none;background:var(--orange)">🖨️ Imprimer rapport</button>
+    </div>
+    <div class="stat-grid" id="stat-cards"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="ico">📋</span> Détail des factures <span id="nb-fact" style="background:#E6F1FB;color:#185FA5;border-radius:20px;padding:1px 10px;font-size:11px;margin-left:4px">0</span></div>
+    <div style="overflow-x:auto">
+      <table class="compta">
+        <thead><tr>
+          <th>N° Facture</th>
+          <th>Date</th>
+          <th>Client</th>
+          <th>Véhicule</th>
+          <th>Règlement</th>
+          <th>Total TTC</th>
+        </tr></thead>
+        <tbody id="compta-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="ico">📈</span> Récapitulatif mensuel</div>
+    <div style="overflow-x:auto">
+      <table class="compta">
+        <thead><tr>
+          <th>Mois</th><th>Nb factures</th><th>Total HT</th><th>Total TTC</th>
+        </tr></thead>
+        <tbody id="recap-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════ INSTALLER ═══════════════════ -->
+<div id="screen-installer" class="screen">
+  <div class="card">
+    <div class="card-title"><span class="ico">📱</span> Installer l'application</div>
+    <p style="font-size:13px;color:#555;margin-bottom:14px">Une fois installée, l'application fonctionne <strong>sans internet</strong>, comme une vraie appli sur votre téléphone.</p>
+    <div class="os-tabs">
+      <button class="os-tab active" onclick="showOS('iphone',this)">🍎 iPhone</button>
+      <button class="os-tab" onclick="showOS('android',this)">🤖 Android</button>
+      <button class="os-tab" onclick="showOS('pc',this)">💻 PC / Mac</button>
+    </div>
+
+    <div id="os-iphone">
+      <div class="install-step"><div class="step-num">1</div><div class="step-content">
+        <h4>Ouvrir dans Safari</h4>
+        <p>Ouvrez ce fichier dans <strong>Safari</strong> (pas Chrome). Tapez le chemin du fichier ou envoyez-le par mail et ouvrez-le.</p>
+        <div class="note">⚠️ Ça doit être Safari obligatoirement pour installer sur iPhone</div>
+      </div></div>
+      <div class="install-step"><div class="step-num">2</div><div class="step-content">
+        <h4>Appuyer sur Partager</h4>
+        <p>En bas de l'écran, appuyez sur l'icône <strong>Partager</strong> (carré avec une flèche vers le haut ↑)</p>
+      </div></div>
+      <div class="install-step"><div class="step-num">3</div><div class="step-content">
+        <h4>Sur l'écran d'accueil</h4>
+        <p>Faites défiler vers le bas et appuyez sur <strong>"Sur l'écran d'accueil"</strong></p>
+      </div></div>
+      <div class="install-step"><div class="step-num">4</div><div class="step-content">
+        <h4>Confirmer</h4>
+        <p>Appuyez sur <strong>"Ajouter"</strong> en haut à droite. L'icône apparaît sur votre écran d'accueil !</p>
+      </div></div>
+    </div>
+
+    <div id="os-android" style="display:none">
+      <div class="install-step"><div class="step-num">1</div><div class="step-content">
+        <h4>Ouvrir dans Chrome</h4>
+        <p>Ouvrez ce fichier dans <strong>Google Chrome</strong>.</p>
+      </div></div>
+      <div class="install-step"><div class="step-num">2</div><div class="step-content">
+        <h4>Menu Chrome</h4>
+        <p>Appuyez sur les <strong>3 points ⋮</strong> en haut à droite</p>
+      </div></div>
+      <div class="install-step"><div class="step-num">3</div><div class="step-content">
+        <h4>Ajouter à l'écran d'accueil</h4>
+        <p>Appuyez sur <strong>"Ajouter à l'écran d'accueil"</strong> puis <strong>"Ajouter"</strong></p>
+      </div></div>
+    </div>
+
+    <div id="os-pc" style="display:none">
+      <div class="install-step"><div class="step-num">1</div><div class="step-content">
+        <h4>Double-cliquez sur index.html</h4>
+        <p>Le fichier s'ouvre dans votre navigateur (Chrome recommandé).</p>
+      </div></div>
+      <div class="install-step"><div class="step-num">2</div><div class="step-content">
+        <h4>Créer un raccourci</h4>
+        <p>Glissez l'onglet sur votre bureau, ou clic droit → <strong>"Enregistrer sous favori"</strong>.</p>
+      </div></div>
+      <div class="install-step"><div class="step-num">3</div><div class="step-content">
+        <h4>Imprimer les factures</h4>
+        <p>Le bouton <strong>"Imprimer / PDF"</strong> ouvre la fenêtre d'impression. Choisissez <strong>"Enregistrer en PDF"</strong> pour garder une copie numérique.</p>
+      </div></div>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="ico">💾</span> Sauvegarde des données</div>
+    <p style="font-size:13px;color:#555;margin-bottom:12px">Toutes les factures sont sauvegardées automatiquement dans le téléphone / ordinateur. Pour sauvegarder manuellement :</p>
+    <div class="actions">
+      <button class="btn-primary" onclick="exportAllData()">⬇️ Exporter toutes les données</button>
+      <button class="btn-secondary" onclick="document.getElementById('import-file').click()">⬆️ Importer données</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <p style="font-size:11px;color:#aaa;margin-top:10px">💡 Exportez régulièrement vos données et gardez le fichier dans votre Google Drive ou iCloud</p>
+  </div>
+</div>
+
+<script>
+var STORAGE_KEY = 'mn_lavage_factures';
+var ligneCount = 1;
+var currentMonth = new Date();
+
+// ── UTILS ──
+function fmt(n){return n.toFixed(2).replace('.',',')+' €'}
+function fmtNum(n){return n.toFixed(2).replace('.',',')}
+function getFactures(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch(e){return[]}}
+function saveFactures(arr){localStorage.setItem(STORAGE_KEY,JSON.stringify(arr))}
+
+// ── SCREENS ──
+function showScreen(id,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='comptabilite') renderCompta();
+}
+
+// ── FORM ──
+function setType(btn,val){
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('v-type').value=val;
+}
+
+function addLigne(){
+  ligneCount++;
+  var id='ligne-'+ligneCount;
+  var tr=document.createElement('tr');
+  tr.id=id;
+  tr.innerHTML='<td><input type="text" placeholder="Prestation..." oninput="calcTotaux()"></td>'+
+    '<td><input type="number" value="1" min="1" style="width:44px" oninput="calcTotaux()"></td>'+
+    '<td><input type="number" value="0" min="0" step="0.5" style="width:60px" oninput="calcTotaux()"></td>'+
+    '<td class="total-col" id="t-'+ligneCount+'">0,00 €</td>'+
+    '<td><button class="btn-del" onclick="delLigne(\''+id+'\')">×</button></td>';
+  document.getElementById('lignes').appendChild(tr);
+  calcTotaux();
+}
+
+function addPreset(label,prix){
+  var rows=document.getElementById('lignes').querySelectorAll('tr');
+  var last=rows[rows.length-1];
+  var inputs=last.querySelectorAll('input');
+  if(inputs[0].value===''&&parseFloat(inputs[2].value)===0){
+    inputs[0].value=label;inputs[2].value=prix;
+  } else {
+    addLigne();
+    var rows2=document.getElementById('lignes').querySelectorAll('tr');
+    var ni=rows2[rows2.length-1].querySelectorAll('input');
+    ni[0].value=label;ni[2].value=prix;
+  }
+  calcTotaux();
+}
+
+function delLigne(id){
+  var rows=document.getElementById('lignes').querySelectorAll('tr');
+  if(rows.length<=1)return;
+  var el=document.getElementById(id);
+  if(el)el.remove();
+  calcTotaux();
+}
+
+function calcTotaux(){
+  var rows=document.getElementById('lignes').querySelectorAll('tr');
+  var sousTotal=0;
+  rows.forEach(function(row){
+    var inputs=row.querySelectorAll('input');
+    var qty=parseFloat(inputs[1].value)||0;
+    var pu=parseFloat(inputs[2].value)||0;
+    var tot=qty*pu;
+    sousTotal+=tot;
+    var n=row.id.replace('ligne-','');
+    var cell=document.getElementById('t-'+n);
+    if(cell)cell.textContent=fmt(tot);
+  });
+  var tvaPct=parseFloat(document.getElementById('tva-mode').value)||0;
+  var tva=sousTotal*tvaPct/100;
+  var ttc=sousTotal+tva;
+  document.getElementById('sous-total').textContent=fmt(sousTotal);
+  document.getElementById('montant-tva').textContent=fmt(tva);
+  document.getElementById('total-ttc').textContent=fmt(ttc);
+}
+
+function collectLignes(){
+  var result=[];
+  document.getElementById('lignes').querySelectorAll('tr').forEach(function(row){
+    var inputs=row.querySelectorAll('input');
+    var desig=inputs[0].value;
+    var qty=parseFloat(inputs[1].value)||0;
+    var pu=parseFloat(inputs[2].value)||0;
+    if(desig)result.push({desig:desig,qty:qty,pu:pu,total:qty*pu});
+  });
+  return result;
+}
+
+function showAlert(msg,type){
+  var a=document.getElementById('alert-ok');
+  document.getElementById('alert-msg').textContent=msg;
+  a.style.display='flex';
+  setTimeout(function(){a.style.display='none';},4000);
+}
+
+function saveAndPrint(){
+  var num=document.getElementById('f-num').value;
+  var dateVal=document.getElementById('f-date').value;
+  var heure=document.getElementById('f-heure').value;
+  var nom=document.getElementById('c-nom').value;
+  var tel=document.getElementById('c-tel').value;
+  var vtype=document.getElementById('v-type').value;
+  var immat=document.getElementById('v-immat').value.toUpperCase();
+  var modele=document.getElementById('v-modele').value;
+  var remarques=document.getElementById('remarques').value;
+  var reglement=document.getElementById('reglement').value;
+  var tvaPct=parseFloat(document.getElementById('tva-mode').value)||0;
+  var lignes=collectLignes();
+  var sousTotal=lignes.reduce(function(s,l){return s+l.total;},0);
+  var tva=sousTotal*tvaPct/100;
+  var ttc=sousTotal+tva;
+
+  // Save to storage
+  var factures=getFactures();
+  var facture={
+    num:num,date:dateVal||new Date().toISOString().split('T')[0],heure:heure,
+    client:nom,tel:tel,vtype:vtype,immat:immat,modele:modele,
+    reglement:reglement,tvaPct:tvaPct,
+    lignes:lignes,sousTotal:sousTotal,tva:tva,ttc:ttc,
+    remarques:remarques,
+    savedAt:new Date().toISOString()
+  };
+  factures.push(facture);
+  saveFactures(factures);
+
+  // Print
+  printFacture(facture);
+  showAlert('Facture '+num+' enregistrée ! Total : '+fmt(ttc));
+  autoIncrement();
+}
+
+function printFacture(f){
+  var win=window.open('','_blank','width=800,height:900');
+  var lignesHtml=f.lignes.map(function(l){
+    return '<tr><td style="padding:8px;border-bottom:1px solid #eee">'+l.desig+'</td>'+
+      '<td style="padding:8px;border-bottom:1px solid #eee;text-align:center">'+l.qty+'</td>'+
+      '<td style="padding:8px;border-bottom:1px solid #eee;text-align:right">'+fmtNum(l.pu)+' €</td>'+
+      '<td style="padding:8px;border-bottom:1px solid #eee;text-align:right;font-weight:700">'+fmtNum(l.total)+' €</td></tr>';
+  }).join('');
+  var dateAff=f.date?new Date(f.date+'T12:00:00').toLocaleDateString('fr-FR'):new Date().toLocaleDateString('fr-FR');
+  var mention=f.tvaPct===0?'<p style="font-size:11px;color:#888;margin-top:6px">TVA non applicable - Art. 293 B du CGI</p>':'';
+  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Facture '+f.num+'</title>'+
+  '<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;padding:28px;color:#222;font-size:13px}'+
+  '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:14px;border-bottom:3px solid #185FA5}'+
+  '.logo-box{background:#185FA5;border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:10px}'+
+  '.logo-text h1{margin:0;font-size:20px;color:white;font-weight:900}'+
+  '.logo-text .sub{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px}'+
+  '.orange{color:#F7931E}'+
+  '.facture-info{text-align:right}.facture-info h2{font-size:18px;color:#185FA5;margin:0 0 6px}'+
+  '.facture-info p{margin:2px 0;font-size:12px}'+
+  '.parties{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}'+
+  '.box{border:1px solid #ddd;border-radius:8px;padding:12px}.box h3{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.08em;margin:0 0 8px}'+
+  '.vtag{display:inline-block;background:#E6F1FB;color:#185FA5;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:700;margin-bottom:5px}'+
+  'table{width:100%;border-collapse:collapse;margin-bottom:12px}'+
+  'th{background:#185FA5;color:white;padding:8px;text-align:left;font-size:11px}'+
+  '.totaux-box{margin-left:auto;width:220px;border:1px solid #ddd;border-radius:8px;padding:10px}'+
+  '.tr{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #eee}'+
+  '.tr.total{font-weight:700;font-size:15px;color:#185FA5;border:none;padding-top:8px}'+
+  '.footer{margin-top:24px;padding-top:12px;border-top:1px solid #ddd;font-size:11px;color:#888;text-align:center}'+
+  '.reg{display:inline-block;background:#EAF3DE;color:#27500A;border-radius:4px;padding:2px 10px;font-size:12px;font-weight:700}'+
+  '@media print{body{padding:15px}}</style></head><body>'+
+  '<div class="header">'+
+    '<div class="logo-box">'+
+      '<div style="font-size:32px">🚗</div>'+
+      '<div class="logo-text"><h1>MN LAVAGE <span class="orange">AUTO</span></h1><div class="sub">73 Rue de Paris, 95400 Villiers-le-Bel · Lavage manuel</div></div>'+
+    '</div>'+
+    '<div class="facture-info"><h2>FACTURE N° '+f.num+'</h2>'+
+      '<p>Date : <strong>'+dateAff+'</strong>'+(f.heure?' à <strong>'+f.heure+'</strong>':'')+'</p>'+
+      '<p>Règlement : <span class="reg">'+f.reglement+'</span></p>'+
+    '</div>'+
+  '</div>'+
+  '<div class="parties">'+
+    '<div class="box"><h3>Client</h3><p><strong>'+(f.client||'—')+'</strong></p>'+(f.tel?'<p>'+f.tel+'</p>':'')+'</div>'+
+    '<div class="box"><h3>Véhicule</h3><div class="vtag">'+f.immat+'</div><p>'+f.vtype+(f.modele?' — '+f.modele:'')+'</p></div>'+
+  '</div>'+
+  '<table><thead><tr><th style="width:50%">Désignation</th><th style="width:10%;text-align:center">Qté</th><th style="width:20%;text-align:right">Prix unit.</th><th style="width:20%;text-align:right">Total HT</th></tr></thead>'+
+  '<tbody>'+lignesHtml+'</tbody></table>'+
+  '<div class="totaux-box">'+
+    '<div class="tr"><span>Sous-total HT</span><span>'+fmtNum(f.sousTotal)+' €</span></div>'+
+    '<div class="tr"><span>TVA ('+f.tvaPct+'%)</span><span>'+fmtNum(f.tva)+' €</span></div>'+
+    '<div class="tr total"><span>TOTAL TTC</span><span>'+fmtNum(f.ttc)+' €</span></div>'+
+  '</div>'+mention+
+  (f.remarques?'<div style="margin-top:16px;padding:10px;background:#f9f9f9;border-radius:6px;font-size:12px"><strong>Observations :</strong><br>'+f.remarques+'</div>':'')+
+  '<div class="footer">'+
+    '<p>MN LAVAGE AUTO — SAS au capital de 2 000 € — RCS Pontoise 979 518 941 00017</p>'+
+    '<p>73 Rue de Paris, 95400 Villiers-le-Bel — Président : M. MALIK Saïd Ahmed</p>'+
+  '</div>'+
+  '<script>window.onload=function(){window.print()}<\/script>'+
+  '</body></html>');
+  win.document.close();
+}
+
+function autoIncrement(){
+  var cur=document.getElementById('f-num').value;
+  var match=cur.match(/(\d+)$/);
+  if(match){
+    var next=String(parseInt(match[1])+1).padStart(match[1].length,'0');
+    var newNum=cur.replace(/(\d+)$/,next);
+    document.getElementById('f-num').value=newNum;
+    document.getElementById('num-display').textContent=newNum;
+  }
+}
+
+function resetForm(){
+  document.getElementById('c-nom').value='';
+  document.getElementById('c-tel').value='';
+  document.getElementById('v-immat').value='';
+  document.getElementById('v-modele').value='';
+  document.getElementById('remarques').value='';
+  document.getElementById('lignes').innerHTML=
+    '<tr id="ligne-1"><td><input type="text" placeholder="Prestation..." oninput="calcTotaux()"></td>'+
+    '<td><input type="number" value="1" min="1" style="width:44px" oninput="calcTotaux()"></td>'+
+    '<td><input type="number" value="0" min="0" step="0.5" style="width:60px" oninput="calcTotaux()"></td>'+
+    '<td class="total-col" id="t-1">0,00 €</td>'+
+    '<td><button class="btn-del" onclick="delLigne(\'ligne-1\')">×</button></td></tr>';
+  ligneCount=1;
+  calcTotaux();
+  document.querySelectorAll('.tbtn').forEach(function(b,i){b.classList.toggle('active',i===0)});
+  document.getElementById('v-type').value='Citadine';
+  showAlert('Nouvelle facture prête');
+}
+
+// ── COMPTABILITÉ ──
+var MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+function changeMonth(d){
+  currentMonth.setMonth(currentMonth.getMonth()+d);
+  renderCompta();
+}
+
+function renderCompta(){
+  var factures=getFactures();
+  var m=currentMonth.getMonth();
+  var y=currentMonth.getFullYear();
+  document.getElementById('month-label').textContent=MONTHS[m]+' '+y;
+
+  var filterReg=document.getElementById('filter-reglement').value;
+  var filtered=factures.filter(function(f){
+    var d=new Date(f.date+'T12:00:00');
+    return d.getMonth()===m&&d.getFullYear()===y&&(!filterReg||f.reglement===filterReg);
+  });
+
+  // Stats
+  var nbFact=filtered.length;
+  var totalTTC=filtered.reduce(function(s,f){return s+f.ttc;},0);
+  var totalHT=filtered.reduce(function(s,f){return s+f.sousTotal;},0);
+  var totalTVA=filtered.reduce(function(s,f){return s+f.tva;},0);
+  var moy=nbFact>0?totalTTC/nbFact:0;
+
+  document.getElementById('stat-cards').innerHTML=
+    '<div class="stat-card"><div class="stat-val">'+nbFact+'</div><div class="stat-lbl">Factures</div></div>'+
+    '<div class="stat-card orange"><div class="stat-val">'+fmtNum(totalTTC)+' €</div><div class="stat-lbl">CA TTC</div></div>'+
+    '<div class="stat-card"><div class="stat-val">'+fmtNum(totalHT)+' €</div><div class="stat-lbl">CA HT</div></div>'+
+    '<div class="stat-card"><div class="stat-val">'+fmtNum(totalTVA)+' €</div><div class="stat-lbl">TVA collectée</div></div>'+
+    '<div class="stat-card green"><div class="stat-val">'+fmtNum(moy)+' €</div><div class="stat-lbl">Panier moyen</div></div>';
+
+  document.getElementById('nb-fact').textContent=nbFact+' facture'+(nbFact>1?'s':'');
+
+  // Detail table
+  var rows=filtered.sort(function(a,b){return b.date.localeCompare(a.date)}).map(function(f){
+    var dateAff=f.date?new Date(f.date+'T12:00:00').toLocaleDateString('fr-FR'):'—';
+    return '<tr>'+
+      '<td><strong>'+f.num+'</strong></td>'+
+      '<td>'+dateAff+(f.heure?' '+f.heure:'')+'</td>'+
+      '<td>'+(f.client||'—')+'</td>'+
+      '<td>'+(f.immat?'<span style="background:#E6F1FB;color:#185FA5;border-radius:10px;padding:1px 8px;font-size:12px;font-weight:700">'+f.immat+'</span>':'—')+'</td>'+
+      '<td>'+f.reglement+'</td>'+
+      '<td>'+fmtNum(f.ttc)+' €</td>'+
+      '</tr>';
+  }).join('');
+  document.getElementById('compta-body').innerHTML=rows||
+    '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">Aucune facture ce mois-ci</td></tr>';
+
+  // Total row
+  if(filtered.length>0){
+    document.getElementById('compta-body').innerHTML+=
+      '<tr class="total-row"><td colspan="4"><strong>TOTAL '+MONTHS[m]+' '+y+'</strong></td>'+
+      '<td></td><td>'+fmtNum(totalTTC)+' €</td></tr>';
+  }
+
+  // Monthly recap (all months)
+  var byMonth={};
+  factures.forEach(function(f){
+    var d=new Date(f.date+'T12:00:00');
+    var key=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');
+    if(!byMonth[key])byMonth[key]={nb:0,ht:0,ttc:0,label:MONTHS[d.getMonth()]+' '+d.getFullYear()};
+    byMonth[key].nb++;
+    byMonth[key].ht+=f.sousTotal;
+    byMonth[key].ttc+=f.ttc;
+  });
+  var recap=Object.keys(byMonth).sort().reverse().map(function(k){
+    var mo=byMonth[k];
+    return '<tr><td><strong>'+mo.label+'</strong></td><td>'+mo.nb+'</td><td>'+fmtNum(mo.ht)+' €</td><td>'+fmtNum(mo.ttc)+' €</td></tr>';
+  }).join('');
+  document.getElementById('recap-body').innerHTML=recap||
+    '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px">Aucune donnée</td></tr>';
+}
+
+function exportCSV(){
+  var factures=getFactures();
+  var m=currentMonth.getMonth();
+  var y=currentMonth.getFullYear();
+  var filtered=factures.filter(function(f){
+    var d=new Date(f.date+'T12:00:00');
+    return d.getMonth()===m&&d.getFullYear()===y;
+  });
+  var csv='N° Facture;Date;Heure;Client;Tel;Immat;Véhicule;Règlement;Total HT;TVA;Total TTC\n';
+  filtered.forEach(function(f){
+    csv+=f.num+';'+f.date+';'+(f.heure||'')+';'+(f.client||'')+';'+(f.tel||'')+';'+f.immat+';'+f.vtype+';'+f.reglement+';'+fmtNum(f.sousTotal)+';'+fmtNum(f.tva)+';'+fmtNum(f.ttc)+'\n';
+  });
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='MN_Lavage_'+MONTHS[m]+'_'+y+'.csv';
+  a.click();
+}
+
+function printReport(){
+  var factures=getFactures();
+  var m=currentMonth.getMonth();
+  var y=currentMonth.getFullYear();
+  var filtered=factures.filter(function(f){
+    var d=new Date(f.date+'T12:00:00');
+    return d.getMonth()===m&&d.getFullYear()===y;
+  });
+  var totalTTC=filtered.reduce(function(s,f){return s+f.ttc;},0);
+  var totalHT=filtered.reduce(function(s,f){return s+f.sousTotal;},0);
+  var totalTVA=filtered.reduce(function(s,f){return s+f.tva;},0);
+  var lignesHtml=filtered.sort(function(a,b){return a.date.localeCompare(b.date)}).map(function(f){
+    return '<tr><td>'+f.num+'</td><td>'+(f.date?new Date(f.date+'T12:00:00').toLocaleDateString('fr-FR'):'')+'</td>'+
+      '<td>'+(f.client||'—')+'</td><td>'+f.immat+'</td><td>'+f.reglement+'</td>'+
+      '<td style="text-align:right;font-weight:700">'+fmtNum(f.ttc)+' €</td></tr>';
+  }).join('');
+  var win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Rapport '+MONTHS[m]+' '+y+'</title>'+
+  '<style>body{font-family:Arial,sans-serif;padding:24px;font-size:13px}h1{color:#185FA5;margin-bottom:4px}h2{font-size:14px;color:#555;margin-bottom:20px;font-weight:400}'+
+  'table{width:100%;border-collapse:collapse}th{background:#185FA5;color:white;padding:8px;text-align:left;font-size:11px}'+
+  'td{padding:7px 8px;border-bottom:1px solid #eee}tr.total td{font-weight:700;background:#E6F1FB;color:#185FA5}'+
+  '.stats{display:flex;gap:16px;margin:16px 0}.stat{border:1px solid #ddd;border-radius:8px;padding:10px 16px;text-align:center}'+
+  '.stat .v{font-size:20px;font-weight:700;color:#185FA5}.stat .l{font-size:10px;color:#888;text-transform:uppercase}'+
+  '.footer{margin-top:20px;font-size:10px;color:#aaa;text-align:center}@media print{body{padding:12px}}</style></head><body>'+
+  '<h1>Rapport mensuel — MN LAVAGE AUTO</h1><h2>'+MONTHS[m]+' '+y+' · '+filtered.length+' facture'+(filtered.length>1?'s':'')+'</h2>'+
+  '<div class="stats">'+
+    '<div class="stat"><div class="v">'+fmtNum(totalTTC)+' €</div><div class="l">CA TTC</div></div>'+
+    '<div class="stat"><div class="v">'+fmtNum(totalHT)+' €</div><div class="l">CA HT</div></div>'+
+    '<div class="stat"><div class="v">'+fmtNum(totalTVA)+' €</div><div class="l">TVA</div></div>'+
+    '<div class="stat"><div class="v">'+filtered.length+'</div><div class="l">Factures</div></div>'+
+  '</div>'+
+  '<table><thead><tr><th>N° Facture</th><th>Date</th><th>Client</th><th>Immat</th><th>Règlement</th><th style="text-align:right">Total TTC</th></tr></thead>'+
+  '<tbody>'+lignesHtml+'<tr class="total"><td colspan="5"><strong>TOTAL '+MONTHS[m]+' '+y+'</strong></td><td style="text-align:right">'+fmtNum(totalTTC)+' €</td></tr></tbody></table>'+
+  '<div class="footer">MN LAVAGE AUTO · SAS · SIRET 979 518 941 00017 · 73 Rue de Paris, 95400 Villiers-le-Bel</div>'+
+  '<script>window.onload=function(){window.print()}<\/script>'+
+  '</body></html>');
+  win.document.close();
+}
+
+// ── INSTALL SCREEN ──
+function showOS(os,btn){
+  document.querySelectorAll('.os-tab').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  ['iphone','android','pc'].forEach(function(id){
+    document.getElementById('os-'+id).style.display=id===os?'block':'none';
+  });
+}
+
+// ── DATA EXPORT/IMPORT ──
+function exportAllData(){
+  var data={factures:getFactures(),exportDate:new Date().toISOString(),version:1};
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='MN_Lavage_Backup_'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+}
+
+function importData(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);
+      var factures=data.factures||data;
+      if(Array.isArray(factures)){
+        saveFactures(factures);
+        alert('✅ '+factures.length+' factures importées avec succès !');
+      }
+    }catch(err){alert('❌ Fichier invalide');}
+  };
+  reader.readAsText(file);
+}
+
+// ── INIT ──
+var today=new Date().toISOString().split('T')[0];
+document.getElementById('f-date').value=today;
+</script>
+</body>
+</html>
